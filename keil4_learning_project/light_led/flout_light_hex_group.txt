@@ -1,0 +1,32 @@
+#include <reg51.h>  // 包含51系列单片机的头文件
+
+#define DELAY 100  // 定义延迟时间
+
+// 定义数码管引脚
+
+// 定义LED灯引脚
+unsigned char ledPins[] = { 0xFE, 0xFD, 0xFB, 0xF7, 0xEF, 0xDF, 0xBF, 0x7F};
+//delay函数，用于延时
+void delay(unsigned int t) {
+    unsigned int i, j;
+    for (i = 0; i < t; i++)
+        for (j = 0; j < 125; j++);
+}
+
+void main() {
+    unsigned char i;
+    
+    while (1) {
+        // 循环点亮LED灯
+        for (i = 0; i < sizeof(ledPins); i++) {
+            P2 = ledPins[i];  // 将当前的LED灯状态写入P1端口
+            delay(DELAY);     // 调用延迟函数
+        }
+        
+        // 反向循环以实现流水效果
+        for (i = sizeof(ledPins) - 1; i < sizeof(ledPins); i--) {
+            P2 = ledPins[i];  // 将当前的LED灯状态写入P1端口
+            delay(DELAY);     // 调用延迟函数
+        }
+    }
+}

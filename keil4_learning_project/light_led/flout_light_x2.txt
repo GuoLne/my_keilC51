@@ -1,0 +1,26 @@
+#include <reg51.h>
+
+#define DELAY 50000  // 定义延迟时间
+
+void delay(unsigned int time) {
+    unsigned int i;
+    for (i = 0; i < time; i++);
+}
+
+void main() {
+    unsigned char ledState = 0xFE;  // 初始状态，最高位点亮
+
+    while (1) {
+        P2 = ledState;       // 将当前的LED灯状态写入P2端口
+        delay(DELAY);        // 调用延迟函数
+        
+        ledState = (ledState << 1) + 1;  // 右移操作，点亮下一个LED灯
+        // "<<" 代表字面意思，将P2的值左移一位，然后加1，实现流水灯效果
+        //左移用1与0表示为：0000 0001 》 0000 0010 》 0000 0100
+
+        // 如果ledState变为0x00（即所有LED灯都熄灭），则重置为0x80（最高位点亮）
+        if (ledState == 0xFF) {
+            ledState = 0xFE;
+        }
+    }
+}

@@ -1,0 +1,19 @@
+//int 类型可以设置的最大值是 32767，最小值是 -32768，即2的15次方减1
+
+//int 类型位数是16位无符号，即2的16次方减1
+
+//unsigned int 类型可以设置的最大值是 65535，是2的16次方减1
+
+//unsigned 代表无符号，int 代表整型，合起来就是无符号整型
+//同理，signed int 代表有符号整型
+
+//unsigned char 代表无符号字符型，signed char 代表有符号字符型
+//关于char 类型，在C语言中，char 类型既可以表示有符号字符，也可以表示无符号字符，具体取决于编译器
+//有无符号字符串的具体表现为：有符号字符串可以表示负数，无符号字符串不能表示负数
+
+//unsigned long 代表无符号长整型，signed long 代表有符号长整型
+//unsigned short 代表无符号短整型，signed short 代表有符号短整型
+//unsigned long long 代表无符号长长整型，signed long long 代表有符号长长整型
+//unsigned float 代表无符号浮点型，signed float 代表有符号浮点型
+//unsigned double 代表无符号双精度浮点型，signed double 代表有符号双精度浮点型
+//unsigned long double 代表无符号长双精度浮点型，signed long double 代表有符号长双精度浮点型

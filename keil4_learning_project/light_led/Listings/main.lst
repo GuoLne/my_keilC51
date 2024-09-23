@@ -1,0 +1,288 @@
+C51 COMPILER V9.01   MAIN                                                                  09/14/2024 16:29:59 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main.lst) OBJECT(.\Object
+                    -s\main.obj)
+
+line level    source
+
+   1          #include<reg51.h>
+   2          #include<intrins.h>
+   3          #include<stdlib.h>
+   4          typedef unsigned int u16;
+   5          typedef unsigned char u8;
+   6          sbit SER=P3^4;
+   7          sbit RCLK=P3^5;
+   8          sbit SRCLK=P3^6;
+   9          sbit up=P3^1;
+  10          sbit down=P3^0;
+  11          sbit lt=P3^2;
+  12          sbit rt=P3^3;
+  13          
+  14          u8      code Hc595_Coordx[]={0x7f,0xbf,0xdf,0xef,0xf7,0xfb,0xfd,0xfe};
+  15          u8      code Hc595_Coordy[]={0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01};
+  16          u8       foodx;
+  17          u8   foody;
+  18          u8   snake_x[20]={0};
+  19          u8   snake_y[20]={0};
+  20          u8 length;
+  21          u8 direction;
+  22          void initSnake();
+  23          void delay(u16 i);
+  24          void Hc595SendByte(u8 dat);
+  25          void move();
+  26          void Keypros();
+  27          void creatFood();
+  28          void snake_Grow(void);
+  29          void drawsnake();
+  30          
+  31          
+  32          
+  33          void initSnake()
+  34          {
+  35   1              snake_x[0]=0;
+  36   1              snake_y[0]=0;
+  37   1              length=1;
+  38   1              direction=2;
+  39   1      }
+  40          void delay(u16 i)
+  41          {
+  42   1        while(i--);
+  43   1      }
+  44          void Hc595SendByte(u8 dat)
+  45          {
+  46   1              u8 a;
+  47   1              SRCLK=0;
+  48   1              RCLK=0;
+  49   1              for(a=0;a<8;a++)
+  50   1              {
+  51   2                      SER=dat>>7;
+  52   2                      dat<<=1;
+  53   2      
+  54   2                      SRCLK=1;
+C51 COMPILER V9.01   MAIN                                                                  09/14/2024 16:29:59 PAGE 2   
+
+  55   2                      _nop_();
+  56   2                      _nop_();
+  57   2                      SRCLK=0;        
+  58   2              }
+  59   1      
+  60   1              RCLK=1;
+  61   1              _nop_();
+  62   1              _nop_();
+  63   1              RCLK=0;
+  64   1      }
+  65          
+  66          
+  67          
+  68          void move()
+  69          {
+  70   1           
+  71   1          u8 len = length- 1;
+  72   1          for(len; len > 0; len--)
+  73   1          {
+  74   2              snake_x[len] = snake_x[len - 1];
+  75   2              snake_y[len] = snake_y[len - 1];        //一直到蛇头
+  76   2          }
+  77   1          switch(direction)
+  78   1          {
+  79   2          case 1:
+  80   2              snake_y[0]--;
+  81   2              break;
+  82   2          case 2:
+  83   2              snake_y[0]++;                                            //再利用蛇头转变方向
+  84   2              break;
+  85   2          case 3:
+  86   2              snake_x[0]--;
+  87   2              break;
+  88   2          case 4:
+  89   2              snake_x[0]++;
+  90   2              break;
+  91   2          default:
+  92   2              break;
+  93   2          }
+  94   1      
+  95   1      }
+  96          
+  97          
+  98          //贪吃蛇的上下左右行动控制
+  99          void Keypros()
+ 100          {
+ 101   1              if(up==0)
+ 102   1              {
+ 103   2              P2 = 0xfe;
+ 104   2                      delay(1000);  //消抖处理
+ 105   2                      if(up==0)
+ 106   2                      {
+ 107   3                        if(direction==3|direction==4)
+ 108   3                        direction=1;             //在地址1内写入数据num
+ 109   3                      }
+ 110   2                      while(!up);
+ 111   2              }
+ 112   1              if(down==0)
+ 113   1              {
+ 114   2                      delay(1000);  //消抖处理
+ 115   2                      if(down==0)
+ 116   2                      {       if(direction==3|direction==4)
+C51 COMPILER V9.01   MAIN                                                                  09/14/2024 16:29:59 PAGE 3   
+
+ 117   3                              direction=2;      
+ 118   3                      }
+ 119   2                      while(!down);
+ 120   2              }
+ 121   1              if(lt==0)
+ 122   1              {
+ 123   2                      delay(100);  //消抖处理
+ 124   2                      if(lt==0)
+ 125   2                      {
+ 126   3                          if(direction==1|direction==2)
+ 127   3                              direction=3; 
+ 128   3                      }
+ 129   2                      while(!lt);
+ 130   2              }
+ 131   1              if(rt==0)
+ 132   1              {
+ 133   2                      delay(1000);  //消抖处理
+ 134   2                      if(rt==0)
+ 135   2                      {
+ 136   3                         if(direction==1|direction==2)
+ 137   3                         direction=4; 
+ 138   3                      }
+ 139   2                      while(!rt);
+ 140   2              }               
+ 141   1      }
+ 142          void creatFood()         //随机创造食物
+ 143          {
+ 144   1          u8 i;
+ 145   1          foodx=rand()%8;
+ 146   1          foody=rand()%8;
+ 147   1          for(i=0; i<length; i++)
+ 148   1          {
+ 149   2              if((foodx==snake_x[i])&&(foody==snake_y[i]))    //如果食物与蛇的身体重叠，要重新创建
+ 150   2                      {
+ 151   3                          creatFood();
+ 152   3                      }       
+ 153   2          }
+ 154   1      }
+ 155          void snake_Grow(void)
+ 156          {
+ 157   1          if(snake_x[0] == foodx && snake_y[0] == foody)
+ 158   1          {
+ 159   2              creatFood();
+ 160   2              snake_x[length] = snake_x[length - 1];
+ 161   2              snake_y[length] = snake_y[length - 1];
+ 162   2              length++;
+ 163   2          }
+ 164   1      }
+ 165          
+ 166          
+ 167          
+ 168          void drawsnake()   //点亮蛇和食物
+ 169          {
+ 170   1           u8 i;
+ 171   1           for(i=0;i<length;i++)
+ 172   1              {
+ 173   2                      Hc595SendByte(Hc595_Coordy[snake_y[i]]);
+ 174   2                        P0=Hc595_Coordx[snake_x[i]];
+ 175   2              delay(20);
+ 176   2                      P0=0xff;
+ 177   2      
+ 178   2                  Hc595SendByte(Hc595_Coordy[foody]);   
+C51 COMPILER V9.01   MAIN                                                                  09/14/2024 16:29:59 PAGE 4   
+
+ 179   2                  P0=Hc595_Coordx[foodx];
+ 180   2              delay(20);
+ 181   2                  P0=0xff;            
+ 182   2              }
+ 183   1      }
+ 184          
+ 185           void JudgeDeath(void)
+ 186          {
+ 187   1          u8 i;
+ 188   1      
+ 189   1          // 判断蛇撞墙死亡
+ 190   1          if((snake_x[0]>7)||(snake_y[0]>7))
+ 191   1          {
+ 192   2               Hc595SendByte(0x00);
+ 193   2              while(1);
+ 194   2          }
+ 195   1      
+ 196   1          // 判断蛇撞到自己身体死亡
+ 197   1          for(i=4; i<length; i++)
+ 198   1          {
+ 199   2              if((snake_x[0]==snake_x[i])&&(snake_y[0]==snake_y[i]))
+ 200   2              {
+ 201   3                  P0=0xFF;
+ 202   3                  while(1);
+ 203   3              }
+ 204   2          }
+ 205   1      }
+ 206          
+ 207          
+ 208          void Timer0Init()
+ 209          {
+ 210   1              TMOD|=0X01;//选择为定时器0模式，工作方式1，仅用TR0打开启动。
+ 211   1      
+ 212   1              TH0=0XD8;       //给定时器赋初值，定时10ms
+ 213   1              TL0=0XF0;       
+ 214   1              ET0=1;//打开定时器0中断允许
+ 215   1              EA=1;//打开总中断
+ 216   1              TR0=1;//打开定时器                 
+ 217   1      }
+ 218          
+ 219          void main()
+ 220          {   
+ 221   1         
+ 222   1              Timer0Init();
+ 223   1              initSnake();    
+ 224   1              while(1)
+ 225   1              { 
+ 226   2               drawsnake();
+ 227   2               JudgeDeath();
+ 228   2               snake_Grow();
+ 229   2               Keypros();
+ 230   2              }
+ 231   1      }
+ 232          
+ 233          void Timer0() interrupt 1
+ 234          {
+ 235   1              static u16 i;
+ 236   1              TH0=0XD8;       //给定时器赋初值，定时10ms
+ 237   1              TL0=0XF0;
+ 238   1              i++;
+ 239   1              if(i==50)
+ 240   1              {
+C51 COMPILER V9.01   MAIN                                                                  09/14/2024 16:29:59 PAGE 5   
+
+ 241   2               i=0;
+ 242   2           move();
+ 243   2              
+ 244   2              }       
+ 245   1      }
+ 246          
+ 247          
+ 248          
+ 249          
+ 250          
+ 251          
+ 252          
+ 253          
+ 254          
+ 255          
+ 256          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    620    ----
+   CONSTANT SIZE    =     16    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     46       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
